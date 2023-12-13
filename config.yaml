@@ -1,0 +1,11 @@
+salesforce_domain: mc.s12.exacttarget.auth.marketingcloudapis.com
+subdomain: "mcgtx9kkbcy470fyfdvk0vczl1dy"
+
+okta_domain: https://accountdev.royalcanin.com
+ciam_api_url: https://prd-weu1-rc-df-ciam-api-webservice-dev.cloud-effem.com
+
+client_id: 0oa1wzon1sbWEGKz40h8
+private_key: m9j4c8aHzlS_YLSCp60DPQs4XNYmluo2Chdp5Gb70Gh0D2eZTr8MhAUsRZyw0HSl
+scopes: "user.custom:register"
+
+locale: mx_MX

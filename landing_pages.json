@@ -1,0 +1,11 @@
+{
+    "calculadora": {
+        "clave": "A79F7523-BF4A-4AED-9605-DEEBAFFCD166",
+        "name": "nombre_usuario",
+        "surname": "apellido_usuario",
+        "email": "correo_usuario",
+        "mobilephone": "telefono",
+        "language": "language",
+        "countryCode": "country_code"
+    }
+}
