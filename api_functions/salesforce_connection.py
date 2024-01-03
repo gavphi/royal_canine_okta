@@ -3,8 +3,8 @@ import pandas as pd
 from io import StringIO
 import json
 from core import config
-from utils import load_json
-
+from api_functions.utils import load_json
+import logging
 subdomain = config.sfmc_config.subdomain
 landing_page_json = load_json("landing_pages.json")
 
@@ -31,8 +31,8 @@ def get_token():
     return token
 
 
-def get_data(token, initial_date, end_date, landind):
-    url = f"https://{subdomain}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/{landind}/rowset?$filter=fecha%20between%20'{initial_date}T00:00:00'%20and%20'{end_date}T00:00:00'"
+def get_data(token, initial_date, end_date, landind, data_column):
+    url = f"https://{subdomain}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/{landind}/rowset?$filter={data_column}%20between%20'{initial_date}T00:00:00'%20and%20'{end_date}T00:00:00'"
 
     headers = {'Authorization': f'Bearer {token}'
     }
@@ -45,6 +45,7 @@ def get_data(token, initial_date, end_date, landind):
     with open('data.json', 'w') as f:
         json.dump(csv_response.json(), f)
 
+    logging.info(csv_response.status_code)
     return csv_response.json()["items"]
 
 def parse_dictionary(user_value, lp_name, field):
@@ -85,3 +86,16 @@ def transform_data(data, lp_name):
 
     return users
 
+def post_process_name_surname(user_data):
+
+    users = []
+    for user in user_data:
+
+        full_name = user["firstName"].split()
+
+        user["firstName"] = full_name[0]
+        user["lastName"] = ' '.join(full_name[1::])
+
+        users.append(user)
+
+    return users

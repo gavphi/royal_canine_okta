@@ -1,6 +1,6 @@
-from salesforce_connection import get_token, get_data, transform_data
-from okta import create_user
-from utils import load_json
+from api_functions.salesforce_connection import get_token, get_data, transform_data
+from api_functions.okta import create_user
+from api_functions.utils import load_json
 import json
 
 import azure.functions as func

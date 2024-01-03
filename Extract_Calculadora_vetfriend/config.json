@@ -1,0 +1,16 @@
+{
+    "calculadora_vetfriend": {
+        "clave": "169975CB-71F2-430A-9A96-562BC6DCD2FC",
+        "date_column": "fecha",
+        "name": "nombre_usuario",
+        "surname": "apellido_usuario",
+        "email": "correo_usuario",
+        "mobilephone": "",
+        "language": "",
+        "countryCode": "",
+        "mars_petcare_consent": "casilla_mars_petcare",
+        "rc_mkt_consent": "casilla_privacidad",
+        "data_research_consent": "casilla_usar_datos",
+        "rc_tyc_consent": "casilla_boletin_info"
+    }
+}

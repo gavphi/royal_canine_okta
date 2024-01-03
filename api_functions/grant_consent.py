@@ -1,6 +1,6 @@
 import requests
 import json
-from credentials import get_token
+from api_functions.credentials import get_token
 from core import config
 
 ciam_api_url_dev = config.okta_config.ciam_api_url

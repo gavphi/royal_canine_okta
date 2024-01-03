@@ -1,6 +1,6 @@
 import requests
 import json
-from credentials import get_token
+from api_functions.credentials import get_token
 from core import config
 
 ciam_api_url_dev = config.okta_config.ciam_api_url
@@ -91,35 +91,3 @@ def get_user(id):
     print(res.text)
     return res
 
-
-"""res = create_user(
-    "Alexandra",
-    "Soares",
-    "000000000",
-    "testingmario@gmail.com",
-    "testingmario@gmail.com",
-    "Spanish",
-    "311",
-    "test",
-)
-
-print(res.text)
-
-res = update_user(
-    "00u1xi5rv44tVqOeg0h8"
-    "Marilia",
-    "Soares",
-    "000000200",
-    "testingmario@gmail.com",
-    "testingmario@gmail.com",
-    "Spanish",
-    "311",
-    "test",
-)
-
-print(res.text)
-
-"""
-
-"""res = get_user("00u1xi5rv44tVqOeg0h8")
-print(res.text)"""

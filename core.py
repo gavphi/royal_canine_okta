@@ -28,12 +28,17 @@ class OktaConfig(BaseModel):
     ciam_api_url: str
     locale: str
 
+class AzureConfig(BaseModel):
+    """Azure Storage config"""
+    conn_str: str
+    container_name: str
 
 class Config(BaseModel):
     """Master config object."""
 
     sfmc_config: SalesForceConfig
     okta_config: OktaConfig
+    azure_config: AzureConfig
 
 
 def find_config_file() -> Path:
@@ -64,6 +69,7 @@ def create_and_validate_config(parsed_config: YAML = None) -> Config:
     _config = Config(
         sfmc_config=SalesForceConfig(**parsed_config.data),
         okta_config=OktaConfig(**parsed_config.data),
+        azure_config = AzureConfig(**parsed_config.data)
     )
     logger.info("Config file read!.")
 
