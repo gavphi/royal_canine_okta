@@ -12,3 +12,8 @@ locale: mx_MX
 
 conn_str: "DefaultEndpointsProtocol=https;AccountName=royalcaninedata;AccountKey=eAnZOxRyleN4zoAReb4OC2Iy88/RRahA9W2vTSqj9BV/DcxaVDpHPVGaGVuzdOWBqV4L6/cjbTDd+AStGukhog==;EndpointSuffix=core.windows.net"
 container_name: sfmc-daily-data
+
+host: "rc-sfmc-migration.database.windows.net"
+database: "rc-sfmc-db"
+username: "rc-sfmc-migration"
+password: "!royalcanine#1"

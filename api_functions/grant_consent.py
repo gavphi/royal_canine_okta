@@ -13,7 +13,7 @@ def granting_consent(id):
         "collection_point_guid": "e19dba07-71a0-4e8e-8d2a-b889c55f9f41",
         "collection_point_version": 1,
         "purposes": [
-            {"Id": "3b1b7e10-883e-48e0-a432-ebd3c4a488ab"},
+            {"Id": "12796cd0-f61d-4a90-af52-f16872a54dcc"},
         ],
     }
 
@@ -29,5 +29,6 @@ def granting_consent(id):
     return res
 
 
-res = granting_consent("00u1xi5rv44tVqOeg0h8")
+"""res = granting_consent("00u1xi5rv44tVqOeg0h8")
 print(res.text)
+"""
