@@ -18,9 +18,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     transform = None
 
-    input_config = req.get_json()
-
-    page = input_config["landing_pages"]
+    page = req.get_body()
 
     sfmc_token = get_token()
 
