@@ -40,7 +40,7 @@ class TestEndpoints():
 
     def WithdrawlConsent(self):
     
-        res = withdrawl_consent(self.user_id)
+        res = withdrawl_consent(self.user_id, config.consents_config.data_research_consent)
         print(res.text)
         return res
 
@@ -54,10 +54,10 @@ user_id = "00u1yg1ggar8YGnlG0h8"
 
 update_user_payload = { "id": "00u1yg1ggar8YGnlG0h8", 
             "name": "Margarida",
-            "surname": "Gernandes",
+            "surname": "Fernandes",
             "mobilephone": "000000200",
-            "lng": "Spanish",
-            "countryCode": "311"}
+            "lng": "es-MX",
+            "countryCode": "MX"}
 
 create_user_payload = {"name": "Margarida",
             "surname": "Fernandes",

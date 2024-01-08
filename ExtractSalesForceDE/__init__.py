@@ -5,7 +5,7 @@ import azure.functions as func
 import pandas as pd
 from core import config
 from azure_storage import AzureStorage
-from datetime import datetime
+from datetime import datetime, timedelta
 from api_functions.db_functions import *
 from api_functions.db_schemas import UsersSFMC_TblSchema, OneTrustConsents_TblSchema
 
@@ -18,11 +18,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     transform = None
 
-    #input_config = req.get_json()
+    input_config = req.get_json()
 
-    input_config = {"page": "lifestage_dog"}
-
-    page = input_config["page"]
+    page = input_config["landing_pages"]
 
     sfmc_token = get_token()
 
@@ -32,19 +30,22 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = "2023-06-25"
-    end_date = "2023-06-29"
+    start_date = datetime.today().strftime('%Y-%m-%d')
+
+    today = datetime.today()
+    day_after = today + timedelta(days=1)
+    end_date = day_after.strftime('%Y-%m-%d')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
     '''
-    #try:
-    data = get_data(sfmc_token, start_date, end_date, clave, date_column)
-    
-    if withdrawl == False:
-        transform = True
-    #except:
-    #    logging.warning(f"No Data to be extract for {page} today or something went wrong.")
+    try:
+        data = get_data(sfmc_token, start_date, end_date, clave, date_column)
+        
+        if withdrawl == False:
+            transform = True
+    except:
+        logging.warning(f"No Data to be extract for {page} today or something went wrong.")
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage

@@ -8,7 +8,9 @@ okta_url = config.okta_config.okta_domain
 
 
 def granting_consent(id, purpose_id):
-    url = f"{ciam_api_url_dev}/consent/users/{id}"
+    url = f"{ciam_api_url_dev}/consent/users/{id[0]}"
+
+    print(url)
     payload = {
         "collection_point_guid": "e19dba07-71a0-4e8e-8d2a-b889c55f9f41",
         "collection_point_version": 1,
@@ -21,7 +23,7 @@ def granting_consent(id, purpose_id):
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['user.consent:collect'])}",
+        "Authorization": f"Bearer {get_token(['users.consent:collect'])}",
     }
 
     res = requests.post(url, data=json.dumps(payload), headers=headers)
@@ -31,11 +33,12 @@ def granting_consent(id, purpose_id):
 
 def withdrawl_consent(user_id, purpose_id):
 
-    url = f"{ciam_api_url_dev}/consent/users/{user_id}/purposes/{purpose_id}"
+    url = f"{ciam_api_url_dev}/consent/users/{user_id[0]}/purposes/{purpose_id}"
 
+    print(url)
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_token("user.consent:delete")}'
+        'Authorization': f'Bearer {get_token("users.consent:delete")}'
     }
 
     response = requests.delete(url, headers=headers)
@@ -44,15 +47,16 @@ def withdrawl_consent(user_id, purpose_id):
 
 def get_consent(user_id):
 
-    url = f"{ciam_api_url_dev}/consent/users/{user_id}"
-
+    url = f"{ciam_api_url_dev}/consent/users/{user_id[0]}"
+    print(url)
     data = {}  
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_token("user.consent:read")}'
+        'Authorization': f'Bearer {get_token("users.consent:read")}'
     }
     
     response = requests.get(url, headers=headers, json=data)
 
+    print(response.text)
     return response

@@ -49,8 +49,9 @@ def update_user(
     user,
     account_type="test"
 ):
-    url = f"{ciam_api_url_dev}/directory/users/{str(user['id'])}"
+    url = f"{ciam_api_url_dev}/directory/users/{user['id']}"
 
+    print(url)
     logging.info(f"USER UPDATE: {user}")
     payload = {
         "profile": {
@@ -63,9 +64,10 @@ def update_user(
         },
     }
 
+    print(payload)
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['user.profile:write'])}",
+        "Authorization": f"Bearer {get_token(['users.profile:write'])}",
     }
 
     payload_json = json.dumps(payload)
@@ -77,12 +79,13 @@ def update_user(
 def get_user(id):
 
     logging.info(f"Getting user information with id: {id}")
-    url = f"{ciam_api_url_dev}/directory/users/{id}"
+    url = f"{ciam_api_url_dev}/directory/users/{id[0]}"
 
+    print(url)
     logging.info(f"URL: {url}")
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['user.profile:read'])}",
+        "Authorization": f"Bearer {get_token(['users.profile:read'])}",
     }
 
     res = requests.get(url, params = {}, headers=headers)
