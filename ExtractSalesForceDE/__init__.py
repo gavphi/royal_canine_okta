@@ -20,6 +20,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     page = req.get_body()
 
+    logging.info(f"Extracting for page... {page}")
+
     sfmc_token = get_token()
 
     clave = config_json[page]["clave"]
@@ -38,6 +40,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Get raw data from SFMC using SFMC API endpoint.
     '''
     try:
+        logging.info(f"Getting data for page... {page}")
         data = get_data(sfmc_token, start_date, end_date, clave, date_column)
         
         if withdrawl == False:
@@ -49,6 +52,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
     '''
     if transform:
+        logging.info(f"Transforming data for page... {page}")
         users = transform_data(data, page)
 
         if page in split_name_pages:
@@ -56,6 +60,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         users_df = prepare_df(users)
         
+        logging.info(f"Uploading to DB... {page}")
         update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date"]], "UsersSFMC", UsersSFMC_TblSchema())
         
         update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update"]], "OneTrustConsents", OneTrustConsents_TblSchema())

@@ -13,24 +13,30 @@ landing_page_json = load_json("config.json")
 
 
 def get_token():
-    headers = {"Content-Type": "application/json"}
-    
+    logging.info("Generating SFMC token...")
 
-    url = f"https://{subdomain}.auth.marketingcloudapis.com/v2/token"
+    try:
+        headers = {"Content-Type": "application/json"}
+        
 
-    payload = {
-        "grant_type": "client_credentials",
-        "client_id": "0stvbuuuy62dkb7eafu41217",
-        "client_secret": "qiFPTp8wBvCHMCxdQaCDYoyP",
-        "account_id": "534006563"
-        }
+        url = f"https://{subdomain}.auth.marketingcloudapis.com/v2/token"
 
-    res = requests.post(url, data=json.dumps(payload), headers=headers)
+        payload = {
+            "grant_type": "client_credentials",
+            "client_id": "0stvbuuuy62dkb7eafu41217",
+            "client_secret": "qiFPTp8wBvCHMCxdQaCDYoyP",
+            "account_id": "534006563"
+            }
 
-    response_json = res.json()
+        res = requests.post(url, data=json.dumps(payload), headers=headers)
 
-    token = response_json["access_token"]
+        response_json = res.json()
 
+        token = response_json["access_token"]
+
+        logging.info("Token generated.")
+    except Exception as e:
+        logging.error(f"Token not generated: {e}")
     return token
 
 
