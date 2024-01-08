@@ -18,7 +18,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     transform = None
 
-    page = req.get_body()
+    page = req.get_body().decode('utf-8')
 
     logging.info(f"Extracting for page... {page}")
 
@@ -39,14 +39,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
     Get raw data from SFMC using SFMC API endpoint.
     '''
-    try:
-        logging.info(f"Getting data for page... {page}")
-        data = get_data(sfmc_token, start_date, end_date, clave, date_column)
-        
-        if withdrawl == False:
-            transform = True
-    except:
-        logging.warning(f"No Data to be extract for {page} today or something went wrong.")
+    #try:
+    logging.info(f"Getting data for page... {page}")
+    data = get_data(sfmc_token, start_date, end_date, clave, date_column)
+    
+    logging.info(f"Withdrawl? {withdrawl}")
+    if withdrawl == False:
+        transform = True
+    #except:
+    #    logging.warning(f"No Data to be extract for {page} today or something went wrong.")
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
