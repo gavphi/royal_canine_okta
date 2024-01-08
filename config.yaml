@@ -17,3 +17,8 @@ host: "rc-sfmc-migration.database.windows.net"
 database: "rc-sfmc-db"
 username: "rc-sfmc-migration"
 password: "!royalcanine#1"
+
+mars_petcare_consent: "d5e5a6d5-17a2-4bb9-9803-3f81f5af14a1"
+rc_mkt_consent: "d836cbce-b920-4eba-a187-14cc6a2738b2"
+data_research_consent: "2925c7b3-5ec4-47a9-af88-0ee44aeb4c79"
+rc_tyc_consent: "12796cd0-f61d-4a90-af52-f16872a54dcc"

@@ -33,6 +33,13 @@ class AzureConfig(BaseModel):
     conn_str: str
     container_name: str
 
+class ConsentsConfig(BaseModel):
+    """Azure Storage config"""
+    mars_petcare_consent: str
+    rc_mkt_consent: str
+    data_research_consent: str
+    rc_tyc_consent: str
+
 class SQLServerConfig(BaseModel):
     """Azure Storage config"""
     host: str
@@ -47,6 +54,7 @@ class Config(BaseModel):
     okta_config: OktaConfig
     azure_config: AzureConfig
     sql_config: SQLServerConfig
+    consents_config: ConsentsConfig
 
 def find_config_file() -> Path:
     """Locate the configuration file."""
@@ -77,7 +85,8 @@ def create_and_validate_config(parsed_config: YAML = None) -> Config:
         sfmc_config=SalesForceConfig(**parsed_config.data),
         okta_config=OktaConfig(**parsed_config.data),
         azure_config = AzureConfig(**parsed_config.data),
-        sql_config = SQLServerConfig(**parsed_config.data)
+        sql_config = SQLServerConfig(**parsed_config.data),
+        consents_config = ConsentsConfig(**parsed_config.data)
     )
     logger.info("Config file read!.")
 

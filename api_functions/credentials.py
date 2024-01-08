@@ -4,7 +4,9 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
 from core import config
-
+import requests
+import jwt
+from datetime import datetime, timedelta
 
 def get_token(scopes):
     okta_url = config.okta_config.okta_domain

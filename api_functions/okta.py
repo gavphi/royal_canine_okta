@@ -85,7 +85,7 @@ def get_user(id):
         "Authorization": f"Bearer {get_token(['user.profile:read'])}",
     }
 
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, params = {}, headers=headers)
 
     logging.info(res)
     return res
