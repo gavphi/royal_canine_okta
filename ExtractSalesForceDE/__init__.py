@@ -39,13 +39,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = datetime.today().strftime('%Y-%m-%d')
+    start_date = "2020-01-01" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
     end_date = day_after.strftime('%Y-%m-%d')
 
-    current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
+    current_time = "2024-01-09" #datetime.today().strftime('%Y-%m-%d %H:%M')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
@@ -56,7 +56,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except:
         logging.warning(f"No Data to be extract for {page} today or something went wrong.")
         save_logs(log_stream.getvalue(),  current_time, LOG_PATH)
-        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong", status_code = 400)
+        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong", status_code = 200)
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
