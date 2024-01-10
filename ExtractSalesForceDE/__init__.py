@@ -4,24 +4,32 @@ from api_functions.utils import load_json
 import azure.functions as func
 import pandas as pd
 from core import config
-from azure_storage import AzureStorage
+from azure_storage import AzureStorage, save_logs
 from datetime import datetime, timedelta
 from api_functions.db_functions import *
 from api_functions.db_schemas import UsersSFMC_TblSchema, OneTrustConsents_TblSchema
+import io
 
 config_json = load_json("config.json")
 
-split_name_pages = ["start_of_life_kittens", "start_of_life_dogs", "lifestage_dog"]
+split_name_pages = ["start_of_life_kittens", "start_of_life_dogs", "lifestage_dog", "start_of_life_dog_breeders", "start_of_life_kittens_breeders"]
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
     
-    transform = None
 
-    #page = req.get_body().decode('utf-8')
-    page = "calculadora"
+    page = req.get_body().decode('utf-8')
+    #page = "calculadora"
 
     logging.info(f"Extracting for page... {page}")
+
+    LOG_PATH = f"{page}/logs/logs.log"
+
+    log_stream = io.StringIO()
+    handler = logging.StreamHandler(log_stream)
+    logger = logging.getLogger()
+    logger.addHandler(handler)
+
 
     sfmc_token = get_token()
 
@@ -31,11 +39,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = '2024-01-07' #datetime.today().strftime('%Y-%m-%d')
+    start_date = datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = '2024-01-09' #day_after.strftime('%Y-%m-%d')
+    end_date = day_after.strftime('%Y-%m-%d')
+
+    current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
@@ -45,13 +55,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         data = get_data(sfmc_token, start_date, end_date, clave, date_column)
     except:
         logging.warning(f"No Data to be extract for {page} today or something went wrong.")
-        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong", 400)
+        save_logs(log_stream.getvalue(),  current_time, LOG_PATH)
+        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong", status_code = 400)
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
     '''
-
-    data = [data[1]]
 
     logging.info(f"Data: {data}")
     if data != []:
@@ -84,7 +93,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/withdrawl/sfmc_data_{start_date}_{end_date}.csv")
 
+        save_logs(log_stream.getvalue(), current_time, LOG_PATH)
         return func.HttpResponse("Users to Withdrawl extracted from SFMC")
         
     else:
-        return func.HttpResponse(f"No Data to be extract for page {page} from SFMC", 400)
+
+        save_logs(log_stream.getvalue(), current_time, LOG_PATH)
+        return func.HttpResponse(f"No Data to be extract for page {page} from SFMC", status_code=500)

@@ -172,3 +172,7 @@ class AzureStorage:
         )
         container_client.create_container()
         logging.info(f"Successfully created container {self.container_name}")
+
+def save_logs(log_stream, timestamp, filename):
+    azs = AzureStorage(config.azure_config.container_name)
+    azs.upload_blob_logs(log_stream, filename, timestamp)
