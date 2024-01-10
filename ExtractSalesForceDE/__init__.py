@@ -31,11 +31,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = "2024-01-01" #datetime.today().strftime('%Y-%m-%d')
+    start_date = '2024-01-07' #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2024-01-05" #day_after.strftime('%Y-%m-%d')
+    end_date = '2024-01-09' #day_after.strftime('%Y-%m-%d')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
@@ -45,10 +45,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         data = get_data(sfmc_token, start_date, end_date, clave, date_column)
     except:
         logging.warning(f"No Data to be extract for {page} today or something went wrong.")
+        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong", 400)
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
     '''
+
+    data = [data[1]]
+
+    logging.info(f"Data: {data}")
     if data != []:
         logging.info(f"Transforming data for page... {page}")
         users = transform_data(data, page)
@@ -58,11 +63,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         users_df = prepare_df(users, page)
 
-        
+        users_df.to_csv("users.csv")
         logging.info(f"Uploading to DB... {page}")
-        update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
+        #update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
         
-        #update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update"]], "OneTrustConsents", OneTrustConsents_TblSchema())
+        update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl"]], "OneTrustConsents", OneTrustConsents_TblSchema())
 
         azs = AzureStorage(config.azure_config.container_name)
         azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/sfmc_data_{start_date}_{end_date}.csv")
@@ -82,4 +87,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Users to Withdrawl extracted from SFMC")
         
     else:
-        return func.HttpResponse(f"No Data to be extract for page {page} from SFMC")
+        return func.HttpResponse(f"No Data to be extract for page {page} from SFMC", 400)

@@ -26,7 +26,15 @@ class UsersSFMC_TblSchema:
                 "sqlalchemy": sqlalchemy.types.VARCHAR(length=255),
                 "pandas": "object",
             },
+            "data_extension": {
+                "sqlalchemy": sqlalchemy.types.VARCHAR(length=255),
+                "pandas": "object",
+            },
              "registry_date": {
+                "sqlalchemy": sqlalchemy.types.DateTime,
+                "pandas": "object",
+            },
+             "last_update": {
                 "sqlalchemy": sqlalchemy.types.DateTime,
                 "pandas": "object",
             }
@@ -46,6 +54,14 @@ class UsersOKTA_TblSchema:
             },
             "account_type": {
                 "sqlalchemy": sqlalchemy.types.VARCHAR(length=50),
+                "pandas": "object",
+            },
+            "withdrawl": {
+                "sqlalchemy": sqlalchemy.types.Integer,
+                "pandas": "object",
+            },
+             "last_update": {
+                "sqlalchemy": sqlalchemy.types.DateTime,
                 "pandas": "object",
             }
         }
