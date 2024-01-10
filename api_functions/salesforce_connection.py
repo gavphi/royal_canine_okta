@@ -82,7 +82,6 @@ def transform_data(data, lp_name, wd):
 
         user_value = {**user_value, **user_keys}
 
-        logging.info(f"KEYS: {user_value.keys()}")
         name = parse_dictionary(user_value, lp_name, "name")
         surname = parse_dictionary(user_value, lp_name, "surname")
         email = parse_dictionary(user_value, lp_name, "email")
@@ -114,16 +113,12 @@ def transform_data(data, lp_name, wd):
         
         users.append(user_data)
 
-    logging.info(f"USERS: {users}")
-
     return users
 
 def post_process_name_surname(user_data):
 
     users = []
     for user in user_data:
-
-        logging.info(f"User: {user}")
 
         full_name = user["name"].split()
 

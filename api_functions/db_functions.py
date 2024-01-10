@@ -73,7 +73,6 @@ def update_sfmc_table(df, table, dtype, identity_value=False):
     logging.info(f"Inserting in DB in {table}...")
     engine = connect_to_db()
 
-    df.to_csv(f"users_data.csv")
     with engine.begin() as conn:
         for index, row in df.iterrows():
             

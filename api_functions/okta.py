@@ -11,7 +11,6 @@ okta_url = config.okta_config.okta_domain
 def create_user(user, account_type="test"
 ):
 
-    print(f"User: {user}")
     url = f"{ciam_api_url_dev}/lifecycle/register/offline"
     payload = {
         "callback": okta_url,
