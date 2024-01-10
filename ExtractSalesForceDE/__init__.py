@@ -19,11 +19,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
 
     page = req.get_body().decode('utf-8')
+    
+    logging.info(f'Extract user data from Salesforce for {page}')
     #page = "calculadora"
 
     logging.info(f"Extracting for page... {page}")
 
-    LOG_PATH = f"{page}/logs/logs.log"
+    current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
+
+    LOG_PATH = f"{page}/logs/logs_{current_time}.log"
 
     log_stream = io.StringIO()
     handler = logging.StreamHandler(log_stream)
@@ -44,8 +48,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     today = datetime.today()
     day_after = today + timedelta(days=1)
     end_date = day_after.strftime('%Y-%m-%d')
-
-    current_time = "2024-01-09" #datetime.today().strftime('%Y-%m-%d %H:%M')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
@@ -65,16 +67,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info(f"Data: {data}")
     if data != []:
         logging.info(f"Transforming data for page... {page}")
-        users = transform_data(data, page)
+        users = transform_data(data, page, withdrawl)
 
         if page in split_name_pages:
             users = post_process_name_surname(users)
 
         users_df = prepare_df(users, page)
 
-        users_df.to_csv("users.csv")
         logging.info(f"Uploading to DB... {page}")
-        #update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
+        update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
         
         update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl"]], "OneTrustConsents", OneTrustConsents_TblSchema())
 

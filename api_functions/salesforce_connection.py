@@ -71,7 +71,7 @@ def parse_dictionary(user_value, lp_name, field):
 
     return value
 
-def transform_data(data, lp_name):
+def transform_data(data, lp_name, wd):
 
     users = []
 
@@ -97,8 +97,6 @@ def transform_data(data, lp_name):
         data_research_consent = parse_dictionary(user_value, lp_name, "data_research_consent")
         rc_tyc_consent = parse_dictionary(user_value, lp_name, "rc_tyc_consent")
 
-        withdrawl = parse_dictionary(user_value, lp_name, "withdrawl")
-
         user_data = {
             "name": name,
             "surname": surname,
@@ -111,7 +109,7 @@ def transform_data(data, lp_name):
             "rc_mkt_consent": rc_mkt_consent,
             "data_research_consent": data_research_consent,
             "rc_tyc_consent": rc_tyc_consent,
-            "withdrawl": withdrawl
+            "withdrawl": wd
         }
         
         users.append(user_data)
@@ -149,10 +147,10 @@ def prepare_df(users, page):
     users_df["rc_tyc_consent"] = users_df['rc_tyc_consent'].map(bool_map).fillna(users_df['rc_tyc_consent'])
     users_df["data_extension"] = page
 
-    #users_df = users_df.drop_duplicates(subset=['email'])
+    users_df = users_df.drop_duplicates(subset=['email'])
 
     return users_df
-def transform_withdrawl_data(data, lp_name="unsubcribed"):
+def transform_withdrawl_data(data, wd, lp_name="unsubcribed"):
 
     users = []
     for user in data:

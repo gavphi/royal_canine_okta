@@ -59,11 +59,11 @@ class AzureStorage:
             )
             pass
         
-    def upload_blob_logs(self, log_file, path: str, date: str):
+    def upload_blob_logs(self, log_file, path: str):
         try:
             logging.info(f"Uploading blob to {path}")
             blob_client = self.blob_service_client.get_blob_client(
-            container=self.container_name, blob=f"{date}/{path}"
+            container=self.container_name, blob=f"{path}"
         )
 
             blob_client.upload_blob(
