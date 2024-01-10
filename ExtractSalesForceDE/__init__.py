@@ -18,7 +18,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     transform = None
 
-    page = req.get_body().decode('utf-8')
+    #page = req.get_body().decode('utf-8')
+    page = "calculadora"
 
     logging.info(f"Extracting for page... {page}")
 
@@ -30,41 +31,38 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = datetime.today().strftime('%Y-%m-%d')
+    start_date = "2024-01-01" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = day_after.strftime('%Y-%m-%d')
+    end_date = "2024-01-05" #day_after.strftime('%Y-%m-%d')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
     '''
-    #try:
-    logging.info(f"Getting data for page... {page}")
-    data = get_data(sfmc_token, start_date, end_date, clave, date_column)
-    
-    logging.info(f"Withdrawl? {withdrawl}")
-    if withdrawl == False:
-        transform = True
-    #except:
-    #    logging.warning(f"No Data to be extract for {page} today or something went wrong.")
+    try:
+        logging.info(f"Getting data for page... {page}")
+        data = get_data(sfmc_token, start_date, end_date, clave, date_column)
+    except:
+        logging.warning(f"No Data to be extract for {page} today or something went wrong.")
 
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
     '''
-    if transform:
+    if data != []:
         logging.info(f"Transforming data for page... {page}")
         users = transform_data(data, page)
 
         if page in split_name_pages:
             users = post_process_name_surname(users)
 
-        users_df = prepare_df(users)
+        users_df = prepare_df(users, page)
+
         
         logging.info(f"Uploading to DB... {page}")
-        update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date"]], "UsersSFMC", UsersSFMC_TblSchema())
+        update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
         
-        update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update"]], "OneTrustConsents", OneTrustConsents_TblSchema())
+        #update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update"]], "OneTrustConsents", OneTrustConsents_TblSchema())
 
         azs = AzureStorage(config.azure_config.container_name)
         azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/sfmc_data_{start_date}_{end_date}.csv")
@@ -74,7 +72,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     '''
     Process data of withdrawl LP to DataFrame and save in Azure Storage
     '''
-    if withdrawl:
+    if withdrawl and data != []:
         users = transform_withdrawl_data(data)
 
         azs = AzureStorage(config.azure_config.container_name)

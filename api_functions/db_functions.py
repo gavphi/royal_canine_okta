@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from sqlalchemy import and_
 from core import config
+from datetime import datetime
 
 def insert_in_db(df, table, dtype, index, conn, row, identity_value=False):
     """
@@ -71,41 +72,66 @@ def update_sfmc_table(df, table, dtype, identity_value=False):
     logging.info(f"Inserting in DB in {table}...")
     engine = connect_to_db()
 
+    df.to_csv(f"users_data.csv")
     with engine.begin() as conn:
         for index, row in df.iterrows():
-         
-            query = f"SELECT COUNT(*) FROM {table} WHERE email = '{row['email']}'"
-            result = conn.execute(query)
-            count = result.scalar()
             
+            logging.info(f"email type: {type(row['email'])}")
+            query = f"SELECT COUNT(*) FROM {table} WHERE email = '{row['email']}'"
+
+            logging.info(f"Query: {query}")
+            result = conn.execute(query)
+
+            count = result.scalar()
+
+            logging.info(f"Count: {count}")
+            
+            conn = insert_in_db(df, table, dtype, index, conn, row, identity_value)
+
+
             if count > 0:
                 logging.info("******* UPDATE *******")
-                logging.info("Inserting on DB column wise")
-                
-                if identity_value:
-                    conn.exec_driver_sql(
-                        f"SET IDENTITY_INSERT [{config.sql_config.database}].[dbo].{table} ON"
-                    )
-
-                sfmc_table = sa.Table(table, sa.MetaData(), autoload=True, autoload_with=engine)
-
-                upd = sfmc_table.update().where(sfmc_table.c.email == row["email"])
-
-                logging.info(f"upd: {upd}")
+                logging.info("Inserting on DB column wise.")
+                logging.info(f"Email: {row['email']}")
 
                 
+                query = f"SELECT * FROM {table} WHERE email = '{row['email']}'"
+                df_db = parse_from_sql(query)
+                
+                logging.info(f"df registry date: {df_db.registry_date[0]}")
+                logging.info(f"row registry date: {row['registry_date']}")
 
-                dict_ = {"email": row["email"], "name": row["name"], 
-                         "surname": row["surname"], "mobilephone": row["mobilephone"],
-                         "lng": row["lng"], "countryCode": row["countryCode"], "registry_date": row["registry_date"] }
+                
+                if df_db.registry_date[0] < pd.to_datetime(row['registry_date']):
+                    dict_ = {}
+                
+                    for key in df.keys():
 
-                logging.info(f"Updating row of {table} with this data: {dict_}")
-                val = upd.values(dict_)
+                        if df_db[key][0]:
+                            value = df_db[key][0]
+                            dict_[key] = value
+                        else:
+                            if key == 'registry_date' or key == 'last_update':
+                                value = pd.to_datetime(row[key])
+                            else:
+                                value = row[key]
+                            dict_[key] = value
+                
+                    if identity_value:
+                        conn.exec_driver_sql(
+                            f"SET IDENTITY_INSERT [{config.sql_config.database}].[dbo].{table} ON"
+                        )
 
-                logging.info(f"val: {val}")
-                engine.execute(val)
+                    sfmc_table = sa.Table(table, sa.MetaData(), autoload=True, autoload_with=engine)
 
-                logging.info(f"Inserted data for ID: {row['email']}")
+                    upd = sfmc_table.update().where(sfmc_table.c.email == row["email"])
+
+                    logging.info(f"Updating row of {table} with this data: {dict_}")
+                    val = upd.values(dict_)
+
+                    engine.execute(val)
+
+                    logging.info(f"Inserted data for ID: {row['email']}")
 
 
             else:
@@ -126,6 +152,8 @@ def update_okta_table(df, table, dtype, identity_value=False):
             query = f"SELECT COUNT(*) FROM {table} WHERE id = '{row['id']}'"
             result = conn.execute(query)
             count = result.scalar()
+
+            conn = insert_in_db(df, table, dtype, index, conn, row, identity_value)
             
             if count > 0:
                 logging.info("******* UPDATE *******")
@@ -186,7 +214,30 @@ def update_consents_table(df, table, dtype, identity_value=False):
 
                 upd = consents_table.update().where(consents_table.c.email == row["email"])
 
-                logging.info(f"upd: {upd}")
+                query = f"SELECT * FROM {table} WHERE email = '{row['email']}'"
+                df = parse_from_sql(query)
+                
+
+               
+                dict_ = {}
+                
+                for key in df.keys():
+                    logging.info(f"KEY: {key}")
+                    logging.info(f"value: {row[key]}")
+                    logging.info(f"value df: {df[key].values[0]}")
+                    if df[key].values[0]:
+                        logging.info(f"type: {type(df[key].values[0])}")
+                        if key == 'registry_date' or key == 'last_update':
+                            value = row[key]
+                        else:
+                            value = df[key].values[0]
+                        dict_[key] = value
+                    else:
+                        value = row[key]
+
+                        logging.info(f"type value: {type(value)}")
+                        dict_[key] = value
+
 
                 dict_ = {"email": row["email"], "mars_petcare_consent": row["mars_petcare_consent"], 
                          "rc_mkt_consent": row["rc_mkt_consent"], "data_research_consent": row["data_research_consent"],

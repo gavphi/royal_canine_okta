@@ -50,19 +50,20 @@ def get_data(token, initial_date, end_date, landind, date_column):
     }
 
     logging.info(f"URL: {url}")
-
+        
     csv_response = requests.get(url, headers=headers)
 
-    logging.info(csv_response.json())
-    with open('data.json', 'w') as f:
-        json.dump(csv_response.json(), f)
-
+    
     logging.info(csv_response.status_code)
-    return csv_response.json()["items"]
+    
+    try:
+        return csv_response.json()["items"]
+    except:
+        return []
 
 def parse_dictionary(user_value, lp_name, field):
     field_name = landing_page_json[lp_name][field]
-    logging.info(f"field_name: {field_name}")
+
     if field_name in user_value.keys():
         value = user_value[field_name]
     else:
@@ -73,6 +74,7 @@ def parse_dictionary(user_value, lp_name, field):
 def transform_data(data, lp_name):
 
     users = []
+
     for user in data:
         
         user_value = user["values"]
@@ -112,6 +114,7 @@ def transform_data(data, lp_name):
         users.append(user_data)
 
     logging.info(f"USERS: {users}")
+
     return users
 
 def post_process_name_surname(user_data):
@@ -130,10 +133,10 @@ def post_process_name_surname(user_data):
 
     return users
 
-def prepare_df(users):
+def prepare_df(users, page):
     users_df = pd.DataFrame(data=users)
     users_df["last_update"] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-    users_df['registry_date'] = pd.to_datetime(users_df['registry_date'])
+    users_df['registry_date'] = users_df['registry_date']
 
     bool_map = {'True': 1, 'False': 0}
 
@@ -141,6 +144,9 @@ def prepare_df(users):
     users_df["rc_mkt_consent"] = users_df['rc_mkt_consent'].map(bool_map).fillna(users_df['rc_mkt_consent'])
     users_df["data_research_consent"] = users_df['data_research_consent'].map(bool_map).fillna(users_df['data_research_consent'])
     users_df["rc_tyc_consent"] = users_df['rc_tyc_consent'].map(bool_map).fillna(users_df['rc_tyc_consent'])
+    users_df["data_extension"] = page
+
+    users_df = users_df.drop_duplicates(subset=['email'])
 
     return users_df
 def transform_withdrawl_data(data, lp_name="unsubcribed"):
