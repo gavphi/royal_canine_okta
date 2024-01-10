@@ -1,7 +1,7 @@
 {
     "start_of_life_kittens": {
         "clave": "4AA32C29-DA13-4977-9E62-71A317106B8F",
-        "date_column": "fecha",
+        "date_column": "fecha de registro",
         "name": "nombre completo",
         "surname": "nombre completo",
         "email": "email",
