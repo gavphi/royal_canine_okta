@@ -6,9 +6,10 @@ import azure.functions as func
 from core import config
 import pandas as pd
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from api_functions.db_functions import parse_from_sql, update_okta_table
 from api_functions.db_schemas import UsersOKTA_TblSchema
+from api_functions.utils import convert_dates
 
 account_type = 'test'
 
@@ -17,55 +18,80 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     azs = AzureStorage(config.azure_config.container_name)
 
-    #input_config = req.get_json()
-    input_config = {"page": "lifestage_dog"}
-    page = input_config['page']
+    start_date = datetime.today().strftime('%Y-%m-%d')
 
-    start_date = "2023-06-25"
-    end_date = "2023-06-29"
-
-    
-    #user_data = azs.download_blob_df(f"{page}/sfmc_data_{start_date}_{end_date}.csv")   
+    today = datetime.today()
+    day_after = today + timedelta(days=1)
+    end_date = day_after.strftime('%Y-%m-%d')
 
     query = f"""SELECT * from UsersSFMC us where registry_date > '{start_date} 00:00:00.000' and registry_date < '{end_date} 00:00:00.000'"""
-    user_data = parse_from_sql(query)
+    users_df = parse_from_sql(query)
 
-    logging.info(f"user_data: {user_data}")
+    logging.info(f"user_data: {users_df}")
     
-    ids = []
-    
-    #for index, row in user_data.iterrows():
-    users_df = user_data.iloc[14]
-
-    #try:
     logging.info("Inserting user")
 
-    res = create_user(users_df.to_dict())
+    users_processed = []
+    #idx = 0
 
-    id = json.loads(res.text)['id']
+    users_df.drop_duplicates(inplace=True)
+    #users_df.to_csv("users_df.csv")
+    for index, user in users_df.iterrows():
 
-    users_df["id"] = id
-    
-    users_df["registry_date"] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+        #if idx < 5:
+        get_res = get_user(user)
 
-    users_df.to_csv(f"users_df.csv")
-    
-    logging.info(f"Status code: {res.status_code}")
-    if res.status_code == 200:
-        #df.to_csv("dataframe_id.csv")
+        if get_res.status_code == 404 or get_res == None:
+            
+            logging.warning("User doesn't exist. Creating User.")
+            create_res = create_user(user)
 
-        update_okta_table(users_df, "UsersOkta", UsersOKTA_TblSchema())
-        azs.upload_blob_df(pd.DataFrame(data=users_df), f"{page}/okta/okta_data_{start_date}_{end_date}.csv")
-        return func.HttpResponse("New user created in Okta")
+            if create_res:
+                if create_res.status_code == 200:
+                    
+                    logging.info("User created successfully. Inserting in DB.")
+                    id = json.loads(create_res.text)['id']
 
-    elif res.status_code == 409:
-        logging.warning(f"User already exists. Updating fields.")
-        
-        res = update_user(users_df.to_dict())
+                    user["id"] = id
 
-        logging.warning(f"Response OKA: {res.text}")
-        return func.HttpResponse("Got info from OKTA")
-        
-    azs.upload_blob_df(pd.DataFrame(data=users_df), f"{page}/failed_cases/sfmc_data_{start_date}_{end_date}.csv")
+                    user["account_type"] = account_type
+                    
+                    user["registry_date"] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
 
-    
+                    users_processed.append(user)
+
+                    update_okta_table(user.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
+                
+        elif get_res.status_code == 200:
+                logging.warning(f"User already exists. Updating fields.")
+                
+                id = json.loads(get_res.text)['id']
+                last_updated = json.loads(get_res.text)['lastUpdated']
+
+                logging.info(f"last_updated: {type(last_updated)}")
+                last_updated = convert_dates(last_updated)
+                registry_date = convert_dates(user['registry_date'].strftime('%Y-%m-%d %H:%M:%S'))
+
+                logging.info(f"Last Updated: {last_updated}")
+                logging.info(f"Registry Date: {registry_date}")
+                
+                if last_updated < registry_date:
+                    user["id"] = id
+                    
+                    user["account_type"] = account_type
+                    upd_res = update_user(user)
+                
+                    if upd_res:
+                        if upd_res.status_code == 200:
+                            
+                            logging.info("Updated successfully. Inserting in DB.")
+                            user["registry_date"] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                            users_processed.append(user)
+
+                            update_okta_table(user.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
+        #idx = idx + 1
+
+    if users_processed:
+        azs.upload_blob_df(pd.DataFrame(data=users_processed), f"okta/okta_data_{start_date}_{end_date}.csv")
+
+    return func.HttpResponse("New users created in Okta.")

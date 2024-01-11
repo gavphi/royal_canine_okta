@@ -71,7 +71,9 @@ create_user_payload = {"name": "Margarida",
 end = TestEndpoints(user_id, create_user_payload)
 
 #res = end.CreateUser() # Works
-#res = end.GetUser()  # "Missing required scope"
+res = end.GetUser()  # "Missing required scope"
+
+print(res.status_code)
 #res = end.GrantConsent() # user id mismatch
 #res = end.GetConsent() # "Token user id mismatch"
 #res = end.WithdrawlConsent()

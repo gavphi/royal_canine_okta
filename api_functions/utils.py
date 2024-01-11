@@ -1,4 +1,8 @@
 import json
+from azure_storage import AzureStorage
+from datetime import datetime
+from dateutil import parser
+import pytz
 
 def load_json(filename):
     f = open(filename)
@@ -8,6 +12,15 @@ def load_json(filename):
     return data
 
 
-def save_logs(log_stream, input_config, filename):
-    azs = AzureStorage(input_config["container_name"])
-    azs.upload_blob_logs(log_stream, filename, input_config["timestamp"])
+def convert_dates(date_str):
+    
+    date_obj_utc = parser.parse(date_str)
+
+    # Convert to Barcelona time
+    barcelona_timezone = pytz.timezone('Europe/Madrid')
+    date_obj_barcelona = date_obj_utc.astimezone(barcelona_timezone)
+
+    # Format the datetime object as needed
+    formatted_date = date_obj_barcelona.strftime('%Y-%m-%d %H:%M:%S')
+
+    return formatted_date

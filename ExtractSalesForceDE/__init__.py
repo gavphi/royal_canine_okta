@@ -43,11 +43,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         withdrawl = config_json[page]["withdrawl"]
         
-        start_date = "2023-01-01" #datetime.today().strftime('%Y-%m-%d')
+        start_date = datetime.today().strftime('%Y-%m-%d')
 
         today = datetime.today()
         day_after = today + timedelta(days=1)
-        end_date = "2023-05-20" # day_after.strftime('%Y-%m-%d')
+        end_date = day_after.strftime('%Y-%m-%d')
         
         '''
         Get raw data from SFMC using SFMC API endpoint.
