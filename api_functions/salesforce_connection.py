@@ -140,6 +140,7 @@ def prepare_df(users, page):
     users_df["rc_mkt_consent"] = users_df['rc_mkt_consent'].map(bool_map).fillna(users_df['rc_mkt_consent'])
     users_df["data_research_consent"] = users_df['data_research_consent'].map(bool_map).fillna(users_df['data_research_consent'])
     users_df["rc_tyc_consent"] = users_df['rc_tyc_consent'].map(bool_map).fillna(users_df['rc_tyc_consent'])
+    users_df["withdrawl"] = users_df['withdrawl'].map(bool_map).fillna(users_df['withdrawl'])
     users_df["data_extension"] = page
 
     users_df = users_df.drop_duplicates(subset=['email'])

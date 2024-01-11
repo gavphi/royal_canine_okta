@@ -55,14 +55,6 @@ class UsersOKTA_TblSchema:
             "account_type": {
                 "sqlalchemy": sqlalchemy.types.VARCHAR(length=50),
                 "pandas": "object",
-            },
-            "withdrawl": {
-                "sqlalchemy": sqlalchemy.types.Integer,
-                "pandas": "object",
-            },
-             "last_update": {
-                "sqlalchemy": sqlalchemy.types.DateTime,
-                "pandas": "object",
             }
         }
         self.pandas_dtypes = {k: schema_dict[k]["pandas"] for k in schema_dict.keys()}
@@ -87,6 +79,14 @@ class OneTrustConsents_TblSchema:
             },
             "rc_tyc_consent": {
                 "sqlalchemy": sqlalchemy.types.Integer,
+                "pandas": "object",
+            },
+            "withdrawl": {
+                "sqlalchemy": sqlalchemy.types.Integer,
+                "pandas": "object",
+            },
+             "last_update": {
+                "sqlalchemy": sqlalchemy.types.DateTime,
                 "pandas": "object",
             }
             
