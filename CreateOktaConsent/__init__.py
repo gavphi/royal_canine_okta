@@ -22,11 +22,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     - include try except
     """
 
-    start_date = "2024-01-18" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2024-01-17" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2024-01-19" #day_after.strftime('%Y-%m-%d')
+    end_date = "2024-01-18" #day_after.strftime('%Y-%m-%d')
 
 
     query = f""" SELECT otc.*, uo.id
@@ -39,21 +39,32 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     users_df = parse_from_sql(query)
 
-    logging.info(f"users_df: {users_df}")
-
     for index, user_data in users_df.iterrows():
 
-        logging.info(f"consent: {user_data['mars_petcare_consent']}")
-        if user_data["mars_petcare_consent"] == 1:
-            res = granting_consent(user_data["id"], config.consents_config.mars_petcare_consent )
-        elif user_data["rc_mkt_consent"] == 1:
-            res = granting_consent(user_data["id"], config.consents_config.rc_mkt_consent)
-        elif user_data["data_research_consent"] == 1:
-            res = granting_consent(user_data["id"], config.consents_config.data_research_consent)
-        elif user_data["rc_tyc_consent"] == 1:
-            res = granting_consent(user_data["id"], config.consents_config.rc_tyc_consent)
+        try:
+            logging.info(f"mars_petcare_consent: {user_data['mars_petcare_consent']}")
+            logging.info(f"rc_mkt_consent: {user_data['rc_mkt_consent']}")
+            logging.info(f"data_research_consent: {user_data['data_research_consent']}")
+            logging.info(f"rc_tyc_consent: {user_data['rc_tyc_consent']}")
+            
+            purposes = []
+            if user_data["mars_petcare_consent"] == 1:
+                purposes.append(config.consents_config.mars_petcare_consent)
 
-        logging.info(f"RESPONSE STATUS CODE: {res.status_code}")
-        logging.info(f"RESPONSE TEXT: {res.text}")
+            elif user_data["rc_mkt_consent"] == 1:
+                purposes.append(config.consents_config.rc_mkt_consent)
+
+            elif user_data["data_research_consent"] == 1:
+                purposes.append(config.consents_config.data_research_consent)
+            
+            elif user_data["rc_tyc_consent"] == 1:
+                purposes.append(config.consents_config.rc_tyc_consent)
+
+            res = granting_consent(user_data["id"], purposes)
+            logging.info(f"rc_tyc_consent: {res.status_code}")
+
+        except:
+            logging.warning("Consents not created.")
+
 
     return func.HttpResponse("New user created in Okta")

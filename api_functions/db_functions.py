@@ -206,47 +206,30 @@ def update_consents_table(df, table, dtype, withdrawl=False):
             if count > 0:
                 logging.info("******* UPDATE *******")
                 logging.info("Inserting on DB column wise")
-                
-                if identity_value:
-                    conn.exec_driver_sql(
-                        f"SET IDENTITY_INSERT [{config.sql_config.database}].[dbo].{table} ON"
-                    )
+    
 
                 consents_table = sa.Table(table, sa.MetaData(), autoload=True, autoload_with=engine)
 
-                upd = consents_table.update().where(consents_table.c.email == row["email"])
-
                 query = f"SELECT * FROM {table} WHERE email = '{row['email']}'"
-                df = parse_from_sql(query)
+                df_db = parse_from_sql(query)
+
+                df_db = df_db.iloc[0]
                 
                 if withdrawl:
-                    dict_ = {"email": row["email"], "withdrawl": 1}
+                    dict_ = {"last_update": row["last_update"], "registry_date": row["registry_date"], 
+                             "mars_petcare_consent": df_db["mars_petcare_consent"],"rc_mkt_consent": df_db["rc_mkt_consent"],
+                             "data_research_consent": df_db["data_research_consent"],"rc_tyc_consent": df_db["rc_tyc_consent"],
+                              "withdrawl": 1}
+                    
+                    logging.info(f"dict_: {dict_}")
                 else:
-                    dict_ = {}
-                
-                    for key in df.keys():
-                        logging.info(f"KEY: {key}")
-                        logging.info(f"value: {row[key]}")
-                        logging.info(f"value df: {df[key].values[0]}")
-                        if df[key].values[0]:
-                            logging.info(f"type: {type(df[key].values[0])}")
-                            if key == 'registry_date' or key == 'last_update':
-                                value = row[key]
-                            else:
-                                value = df[key].values[0]
-                            dict_[key] = value
-                        else:
-                            value = row[key]
+                    dict_ = {"last_update": row["last_update"], "registry_date": row["registry_date"],
+                             "mars_petcare_consent": row["mars_petcare_consent"],"rc_mkt_consent": row["rc_mkt_consent"],
+                             "data_research_consent": row["data_research_consent"],"rc_tyc_consent": row["rc_tyc_consent"],
+                              "withdrawl": 0}
 
-                            logging.info(f"type value: {type(value)}")
-                            dict_[key] = value
+                upd = consents_table.update().where(consents_table.c.email == row["email"])
 
-
-                    dict_ = {"email": row["email"], "mars_petcare_consent": row["mars_petcare_consent"], 
-                            "rc_mkt_consent": row["rc_mkt_consent"], "data_research_consent": row["data_research_consent"],
-                            "rc_tyc_consent": row["rc_tyc_consent"], "last_update": row["last_update"]}
-
-                logging.info(f"Updating row of {table} with this data: {dict_}")
                 val = upd.values(dict_)
 
                 logging.info(f"val: {val}")

@@ -88,6 +88,10 @@ class OneTrustConsents_TblSchema:
              "last_update": {
                 "sqlalchemy": sqlalchemy.types.DateTime,
                 "pandas": "object",
+            },
+            "registry_date": {
+                "sqlalchemy": sqlalchemy.types.DateTime,
+                "pandas": "object",
             }
             
         }

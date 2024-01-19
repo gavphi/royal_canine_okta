@@ -1,5 +1,5 @@
 import logging
-from api_functions.okta import create_user, get_user, update_user
+from api_functions.okta import create_user, get_user, update_user, get_token
 from api_functions.utils import load_json
 from azure_storage import AzureStorage
 import azure.functions as func
@@ -18,11 +18,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     azs = AzureStorage(config.azure_config.container_name)
 
-    start_date = "2024-01-18" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2024-01-17" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2024-01-19" #day_after.strftime('%Y-%m-%d')
+    end_date = "2024-01-18" #day_after.strftime('%Y-%m-%d')
 
     query = f"""SELECT * from UsersSFMC us where registry_date > '{start_date} 00:00:00.000' and registry_date < '{end_date} 00:00:00.000'"""
     users_df = parse_from_sql(query)
@@ -36,15 +36,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     users_df.drop_duplicates(inplace=True)
     #users_df.to_csv("users_df.csv")
+
+    get_user_token = get_token(['users.profile:read'])
+    create_user_token = get_token(['user.custom:register'])
+    update_user_token = get_token(['users.profile:write'])
     for index, user in users_df.iterrows():
 
         #if idx < 5:
-        get_res = get_user(user)
+        get_res = get_user(user, get_user_token)
 
         if get_res.status_code == 404 or get_res == None:
             
             logging.warning("User doesn't exist. Creating User.")
-            create_res = create_user(user)
+            create_res = create_user(user, create_user_token)
 
             if create_res:
                 if create_res.status_code == 200:
@@ -79,7 +83,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     user["id"] = id
                     
                     user["account_type"] = account_type
-                    upd_res = update_user(user)
+                    upd_res = update_user(user, update_user_token)
                 
                     if upd_res:
                         if upd_res.status_code == 200:
@@ -89,7 +93,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                             users_processed.append(user)
 
                             update_okta_table(user.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
-        #idx = idx + 1
 
     if users_processed:
         azs.upload_blob_df(pd.DataFrame(data=users_processed), f"okta/okta_data_{start_date}_{end_date}.csv")

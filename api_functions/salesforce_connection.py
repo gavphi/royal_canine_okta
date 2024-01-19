@@ -111,6 +111,7 @@ def transform_data(data, lp_name, wd):
             "withdrawl": wd
         }
         
+        logging.info(f"user_data: {user_data}")
         users.append(user_data)
 
     return users
@@ -146,7 +147,7 @@ def prepare_df(users, page):
     users_df = users_df.drop_duplicates(subset=['email'])
 
     return users_df
-def transform_withdrawl_data(data, wd, lp_name="unsubcribed"):
+def transform_withdrawl_data(data, lp_name="unsubcribed"):
 
     users = []
     for user in data:
@@ -157,10 +158,15 @@ def transform_withdrawl_data(data, wd, lp_name="unsubcribed"):
         user_value = {**user_value, **user_keys}
 
         logging.info(f"KEYS: {user_value.keys()}")
+        logging.info(f"user_value: {user_value}")
         email = parse_dictionary(user_value, lp_name, "email")
+        registry_date = parse_dictionary(user_value, lp_name, "date_column")
         
         user_data = {
-            "email": email
+            "email": email,
+            "last_update": pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S')),
+            "withdrawl": 1,
+            "registry_date": registry_date
         }
         
         users.append(user_data)
@@ -168,4 +174,4 @@ def transform_withdrawl_data(data, wd, lp_name="unsubcribed"):
     
 
     logging.info(f"USERS: {users}")
-    return users
+    return pd.DataFrame(data=users)

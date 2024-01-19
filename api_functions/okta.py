@@ -10,7 +10,7 @@ ciam_api_url_dev = config.okta_config.ciam_api_url
 okta_url = config.okta_config.okta_domain
 
 
-def create_user(user, account_type="test"
+def create_user(user, token, account_type="test"
 ):
     try:
         url = f"{ciam_api_url_dev}/lifecycle/register/offline"
@@ -34,7 +34,7 @@ def create_user(user, account_type="test"
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {get_token(['user.custom:register'])}",
+            "Authorization": f"Bearer {token}",
         }
 
         res = requests.post(url, data=json.dumps(payload), headers=headers)
@@ -57,6 +57,7 @@ def create_user(user, account_type="test"
     
 def update_user(
     user,
+    token, 
     account_type="test"
 ):
     url = f"{ciam_api_url_dev}/directory/users/{user['id']}"
@@ -77,7 +78,7 @@ def update_user(
     print(payload)
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['users.profile:write'])}",
+        "Authorization": f"Bearer {token}",
     }
 
     payload_json = json.dumps(payload)
@@ -86,7 +87,7 @@ def update_user(
     return res
 
 
-def get_user(id):
+def get_user(id, token):
 
     logging.info(f"Getting user information with id: {id}")
     url = f"{ciam_api_url_dev}/directory/users/{id[0]}"
@@ -95,7 +96,7 @@ def get_user(id):
     #logging.info(f"URL: {url}")
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['users.profile:read'])}",
+        "Authorization": f"Bearer {token}",
     }
 
     res = requests.get(url, params = {}, headers=headers)

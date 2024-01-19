@@ -7,16 +7,19 @@ ciam_api_url_dev = config.okta_config.ciam_api_url
 okta_url = config.okta_config.okta_domain
 
 
-def granting_consent(id, purpose_id):
-    url = f"{ciam_api_url_dev}/consent/users/{id[0]}"
+def granting_consent(id, purposes):
+    url = f"{ciam_api_url_dev}/consent/users/{id}"
 
     print(url)
+
+    purposes_ids = []
+    for purpose in purposes:
+        purposes_ids.append( {"Id": purpose},)
+        
     payload = {
         "collection_point_guid": "e19dba07-71a0-4e8e-8d2a-b889c55f9f41",
         "collection_point_version": 1,
-        "purposes": [
-            {"Id": purpose_id},
-        ],
+        "purposes": purposes_ids
     }
 
     print(f"payload: {payload}")
@@ -31,32 +34,32 @@ def granting_consent(id, purpose_id):
     return res
 
 
-def withdrawl_consent(user_id, purpose_id):
+def withdrawl_consent(user_id, purpose_id, token):
 
     url = f"{ciam_api_url_dev}/consent/users/{user_id[0]}/purposes/{purpose_id}"
 
     print(url)
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_token("users.consent:delete")}'
+        'Authorization': f'Bearer {token}'
     }
 
     response = requests.delete(url, headers=headers)
 
     return response
 
-def get_consent(user_id):
+def get_consent(user_id, token):
 
-    url = f"{ciam_api_url_dev}/consent/users/{user_id[0]}"
+    url = f"{ciam_api_url_dev}/consent/users/{user_id}"
     print(url)
     data = {}  
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_token("users.consent:read")}'
+        'Authorization': f'Bearer {token}'
     }
     
     response = requests.get(url, headers=headers, json=data)
 
-    print(response.text)
+    #print(response.text)
     return response
