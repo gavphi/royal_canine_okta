@@ -18,11 +18,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     azs = AzureStorage(config.azure_config.container_name)
 
-    start_date = datetime.today().strftime('%Y-%m-%d')
+    start_date = "2024-01-18" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = day_after.strftime('%Y-%m-%d')
+    end_date = "2024-01-19" #day_after.strftime('%Y-%m-%d')
 
     query = f"""SELECT * from UsersSFMC us where registry_date > '{start_date} 00:00:00.000' and registry_date < '{end_date} 00:00:00.000'"""
     users_df = parse_from_sql(query)

@@ -18,10 +18,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
     
     try:
-        page = req.get_body().decode('utf-8')
+        #page = req.get_body().decode('utf-8')
         
+       
+        page = "start_of_life_dogs"
         logging.info(f'Extract user data from Salesforce for {page}')
-        #page = "start_of_life_dogs"
 
         logging.info(f"Extracting for page... {page}")
 
@@ -43,11 +44,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         withdrawl = config_json[page]["withdrawl"]
         
-        start_date = datetime.today().strftime('%Y-%m-%d')
+        start_date = "2024-01-18" #datetime.today().strftime('%Y-%m-%d')
 
         today = datetime.today()
         day_after = today + timedelta(days=1)
-        end_date = day_after.strftime('%Y-%m-%d')
+        end_date = "2024-01-19" #day_after.strftime('%Y-%m-%d')
         
         '''
         Get raw data from SFMC using SFMC API endpoint.
@@ -64,7 +65,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
         '''
 
-        logging.info(f"Data: {data}")
+
         if data != []:
             logging.info(f"Transforming data for page... {page}")
             users = transform_data(data, page, withdrawl)
@@ -77,7 +78,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             logging.info(f"Uploading to DB... {page}")
             update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
             
-            update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl"]], "OneTrustConsents", OneTrustConsents_TblSchema())
+            update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl"]], "OneTrustConsent", OneTrustConsents_TblSchema())
 
             azs = AzureStorage(config.azure_config.container_name)
             azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/sfmc_data_{start_date}_{end_date}.csv")
@@ -91,6 +92,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             users = transform_withdrawl_data(data)
 
             azs = AzureStorage(config.azure_config.container_name)
+
+            update_consents_table(users_df[["email", "last_update", "withdrawl"]], "OneTrustConsent", OneTrustConsents_TblSchema())
 
             azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/withdrawl/sfmc_data_{start_date}_{end_date}.csv")
 

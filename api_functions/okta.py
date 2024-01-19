@@ -91,8 +91,8 @@ def get_user(id):
     logging.info(f"Getting user information with id: {id}")
     url = f"{ciam_api_url_dev}/directory/users/{id[0]}"
 
-    print(url)
-    logging.info(f"URL: {url}")
+    #print(url)
+    #logging.info(f"URL: {url}")
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {get_token(['users.profile:read'])}",
@@ -100,6 +100,6 @@ def get_user(id):
 
     res = requests.get(url, params = {}, headers=headers)
 
-    logging.info(res)
+    #logging.info(res)
     return res
 

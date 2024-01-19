@@ -48,22 +48,17 @@ def connect_to_db():
     This function establishes the connection to the DB and returns 
     the respective engine.
     """
-    string = (
-        "DRIVER={ODBC Driver 17 for SQL Server};SERVER="
-        + config.sql_config.host
-        + ";DATABASE="
-        + config.sql_config.database
-        + ";UID="
-        + config.sql_config.username
-        + ";PWD="
-        + config.sql_config.password
-    )
+    server = 'localhost'
+    database = 'RC_Data_Migration'
+    username = 'sa'
+    password = 'Xc?H9s6Z3a2]E?1QE3'
+    driver='{ODBC Driver 17 for SQL Server}'
 
-    params = parse.quote_plus(string)
-
-    logging.info(f"Params: {params}")
-
-    return sa.create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+    connection_string = (
+            f"mssql+pymssql://{username}:{password}@{server}:{1433}/{database}"
+        )
+    
+    return sa.create_engine(connection_string)
 
 def update_sfmc_table(df, table, dtype, identity_value=False):
     """
@@ -193,7 +188,7 @@ def update_okta_table(df, table, dtype, identity_value=False):
                 logging.info("******* INSERTING *******")
                 conn = insert_in_db(df, table, dtype, index, conn, row, identity_value)
 
-def update_consents_table(df, table, dtype, identity_value=False):
+def update_consents_table(df, table, dtype, withdrawl=False):
     """
     
     """
@@ -224,31 +219,32 @@ def update_consents_table(df, table, dtype, identity_value=False):
                 query = f"SELECT * FROM {table} WHERE email = '{row['email']}'"
                 df = parse_from_sql(query)
                 
-
-               
-                dict_ = {}
+                if withdrawl:
+                    dict_ = {"email": row["email"], "withdrawl": 1}
+                else:
+                    dict_ = {}
                 
-                for key in df.keys():
-                    logging.info(f"KEY: {key}")
-                    logging.info(f"value: {row[key]}")
-                    logging.info(f"value df: {df[key].values[0]}")
-                    if df[key].values[0]:
-                        logging.info(f"type: {type(df[key].values[0])}")
-                        if key == 'registry_date' or key == 'last_update':
-                            value = row[key]
+                    for key in df.keys():
+                        logging.info(f"KEY: {key}")
+                        logging.info(f"value: {row[key]}")
+                        logging.info(f"value df: {df[key].values[0]}")
+                        if df[key].values[0]:
+                            logging.info(f"type: {type(df[key].values[0])}")
+                            if key == 'registry_date' or key == 'last_update':
+                                value = row[key]
+                            else:
+                                value = df[key].values[0]
+                            dict_[key] = value
                         else:
-                            value = df[key].values[0]
-                        dict_[key] = value
-                    else:
-                        value = row[key]
+                            value = row[key]
 
-                        logging.info(f"type value: {type(value)}")
-                        dict_[key] = value
+                            logging.info(f"type value: {type(value)}")
+                            dict_[key] = value
 
 
-                dict_ = {"email": row["email"], "mars_petcare_consent": row["mars_petcare_consent"], 
-                         "rc_mkt_consent": row["rc_mkt_consent"], "data_research_consent": row["data_research_consent"],
-                         "rc_tyc_consent": row["rc_tyc_consent"], "last_update": row["last_update"]}
+                    dict_ = {"email": row["email"], "mars_petcare_consent": row["mars_petcare_consent"], 
+                            "rc_mkt_consent": row["rc_mkt_consent"], "data_research_consent": row["data_research_consent"],
+                            "rc_tyc_consent": row["rc_tyc_consent"], "last_update": row["last_update"]}
 
                 logging.info(f"Updating row of {table} with this data: {dict_}")
                 val = upd.values(dict_)
@@ -261,14 +257,13 @@ def update_consents_table(df, table, dtype, identity_value=False):
 
             else:
                 logging.info("******* INSERTING *******")
-                conn = insert_in_db(df, table, dtype, index, conn, row, identity_value)
+                conn = insert_in_db(df, table, dtype, index, conn, row, False)
 
 def parse_from_sql(query):
     """
 
     """
 
-    logging.info("Inserting in DB...")
     engine = connect_to_db()
 
     with engine.begin() as conn:

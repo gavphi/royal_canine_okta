@@ -13,10 +13,10 @@ locale: mx_MX
 conn_str: "DefaultEndpointsProtocol=https;AccountName=royalcaninedata;AccountKey=eAnZOxRyleN4zoAReb4OC2Iy88/RRahA9W2vTSqj9BV/DcxaVDpHPVGaGVuzdOWBqV4L6/cjbTDd+AStGukhog==;EndpointSuffix=core.windows.net"
 container_name: sfmc-daily-data
 
-host: "rc-sfmc-migration.database.windows.net"
-database: "rc-sfmc-db"
-username: "rc-sfmc-migration"
-password: "!royalcanine#1"
+host: "localhost"
+database: "rc_sfmc_migration"
+username: "sa"
+password: "Lalalala123456#"
 
 mars_petcare_consent: "d5e5a6d5-17a2-4bb9-9803-3f81f5af14a1"
 rc_mkt_consent: "d836cbce-b920-4eba-a187-14cc6a2738b2"
