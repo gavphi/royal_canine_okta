@@ -147,7 +147,7 @@ def prepare_df(users, page):
     users_df = users_df.drop_duplicates(subset=['email'])
 
     return users_df
-def transform_withdrawl_data(data, lp_name="unsubcribed"):
+def transform_withdrawl_data(data, lp_name="unsubscribed"):
 
     users = []
     for user in data:

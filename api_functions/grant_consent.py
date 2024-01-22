@@ -31,12 +31,13 @@ def granting_consent(id, purposes):
 
     res = requests.post(url, data=json.dumps(payload), headers=headers)
 
+    print(res)
     return res
 
 
 def withdrawl_consent(user_id, purpose_id, token):
 
-    url = f"{ciam_api_url_dev}/consent/users/{user_id[0]}/purposes/{purpose_id}"
+    url = f"{ciam_api_url_dev}/consent/users/{user_id}/purposes/{purpose_id}"
 
     print(url)
     headers = {

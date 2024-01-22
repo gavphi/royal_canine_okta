@@ -29,5 +29,4 @@ def get_token(scopes):
 
     # Access token
     access_token = token["access_token"]
-    print(f"Access Token: {access_token}")
     return access_token

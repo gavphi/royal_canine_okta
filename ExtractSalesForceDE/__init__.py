@@ -20,8 +20,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     #try:
     #page = req.get_body().decode('utf-8')
     
-    
-    page = "unsubcribed"
+    page = "unsubscribed"
     logging.info(f'Extract user data from Salesforce for {page}')
 
     logging.info(f"Extracting for page... {page}")
@@ -44,11 +43,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = "2023-06-27" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2023-09-23" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2023-06-28" #day_after.strftime('%Y-%m-%d')
+    end_date = "2023-09-25" #day_after.strftime('%Y-%m-%d')
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
@@ -97,8 +96,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Users to Withdrawl extracted from SFMC")
     else:
         save_logs(log_stream.getvalue(), LOG_PATH)
-        azs = AzureStorage(config.azure_config.container_name)
-        azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/withdrawl_fails/sfmc_data_{start_date}_{end_date}.csv")
         return func.HttpResponse(f"No Data to be extract for page {page} from SFMC", status_code=200)
     """except Exception as e:
 

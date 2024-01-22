@@ -20,16 +20,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         input_config = {"page": "unsubscribed"}
         page = input_config['page']
 
-        start_date = "2023-06-27" #datetime.today().strftime('%Y-%m-%d')
+        start_date = "2023-09-23" #datetime.today().strftime('%Y-%m-%d')
 
         today = datetime.today()
         day_after = today + timedelta(days=1)
-        end_date = "2023-06-28" #day_after.strftime('%Y-%m-%d')
+        end_date = "2023-09-25" #day_after.strftime('%Y-%m-%d')
 
-        query = f"""SELECT us.id, otc.email, otc.mars_petcare_consent, otc.rc_mkt_consent, otc.data_research_consent, otc.rc_tyc_consent
+        query = f"""SELECT otc.email, otc.mars_petcare_consent, otc.rc_mkt_consent, otc.data_research_consent, otc.rc_tyc_consent
                 FROM OneTrustConsent otc
-                JOIN UsersOkta us ON us.email = otc.email
-                WHERE us.registry_date > '{start_date} 00:00:00.000' AND us.registry_date < '{end_date} 00:00:00.000'
+                WHERE otc.registry_date > '{start_date} 00:00:00.000' AND otc.registry_date < '{end_date} 00:00:00.000'
                 and otc.withdrawl = 1
                 """
         
@@ -42,45 +41,32 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 return func.HttpResponse(f"Users don't exist yet in the system to be withdrawn.", status_code=400)
         else:
 
+                get_user_token = get_token(['users.profile:read'])
+
+                
                 for index, user_data in user_df.iterrows():
-                        
-                        if user_data["mars_petcare_consent"] == 1:
-                                try:
-                                        res = withdrawl_consent(user_data["id"], config.consents_config.mars_petcare_consent, withdrawl_token)
-                                        if res.status_code == 200:
-                                                logging.info(f"mars_petcare_consent withdrawn successful.")
-                                        else:
-                                                logging.warning(f"mars_petcare_consent withdrawn failed.")
+                                res = get_user(user_data['email'], get_user_token)
+                
+                                if res.status_code == 200:
 
-                                except Exception as e:
-                                        logging.error(f"mars_petcare_consent withdrawl was not sucessful.")
+                                        id = json.loads(res.text)['id']
 
-                        
-                        if user_data["data_research_consent"] == 1:
-                                try:    
-                                        res = withdrawl_consent(user_data["id"], config.consents_config.data_research_consent, withdrawl_token)
-                                        if res.status_code == 200:
-                                                logging.info(f"data_research_consent withdrawn successful")
-                                except Exception as e:
-                                        logging.error(f"data_research_consent withdrawl was not sucessful.")
-
-                        if user_data["rc_mkt_consent"] == 1:
-                                try:
-                                        res = withdrawl_consent(user_data["id"], config.consents_config.rc_mkt_consent, withdrawl_token)
-                                        if res.status_code == 200:
-                                                logging.info(f"rc_mkt_consent withdrawn successful")
-                                except Exception as e:
-                                        logging.error(f"rc_mkt_consent withdrawl was not sucessful.")
-
-                        if user_data["rc_tyc_consent"] == 1:
-                                try:
-                                        res = withdrawl_consent(user_data["id"], config.consents_config.rc_tyc_consent, withdrawl_token)
-                                        if res.status_code == 200:
-                                                logging.info(f"rc_tyc_consent withdrawn successful")
-                                except Exception as e:
-                                        logging.error(f"rc_tyc_consent withdrawl was not sucessful.")
+                                        logging.info(f"Withdrawl running for id: {id}")
+                                        
+                                        for purpose in [config.consents_config.mars_petcare_consent, 
+                                                        config.consents_config.data_research_consent,
+                                                        config.consents_config.rc_mkt_consent,
+                                                        config.consents_config.rc_tyc_consent]:
+                                                res = withdrawl_consent(id, purpose, withdrawl_token)
+                                                if res.status_code == 200:
+                                                        logging.info(f"{purpose} withdrawn successful.")
+                                                else:
+                                                        logging.warning(f"{purpose} withdrawn failed.")
+                                else:
+                                        logging.warning(f"Withdrawl unsuccessful. User not found in okta.")
 
                 return func.HttpResponse(f"Withdrawl successful", status_code=200)
-
+        
+                
                 
                         

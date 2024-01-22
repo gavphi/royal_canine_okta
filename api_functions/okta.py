@@ -42,8 +42,6 @@ def create_user(user, token, account_type="test"
         logging.info(f"Status Code: {res.status_code}")
         logging.info(f"Message: {res.text}")
 
-        
-
         if res.status_code==200:
             logging.info(f"User added successfully to OKTA")
             return res
@@ -51,8 +49,8 @@ def create_user(user, token, account_type="test"
             logging.info(f"Unable to add user to OKTA")
             return res
 
-    except:
-        logging.warning(f"Unable to add user to OKTA")
+    except Exception as e:
+        logging.warning(f"Unable to add user to OKTA: {e}")
         return None
     
 def update_user(
@@ -90,7 +88,7 @@ def update_user(
 def get_user(id, token):
 
     logging.info(f"Getting user information with id: {id}")
-    url = f"{ciam_api_url_dev}/directory/users/{id[0]}"
+    url = f"{ciam_api_url_dev}/directory/users/{id}"
 
     #print(url)
     #logging.info(f"URL: {url}")

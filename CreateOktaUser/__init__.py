@@ -18,11 +18,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     azs = AzureStorage(config.azure_config.container_name)
 
-    start_date = "2024-01-17" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2023-09-23" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2024-01-18" #day_after.strftime('%Y-%m-%d')
+    end_date = "2023-09-25" #day_after.strftime('%Y-%m-%d')
 
     query = f"""SELECT * from UsersSFMC us where registry_date > '{start_date} 00:00:00.000' and registry_date < '{end_date} 00:00:00.000'"""
     users_df = parse_from_sql(query)
@@ -43,8 +43,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     for index, user in users_df.iterrows():
 
         #if idx < 5:
-        get_res = get_user(user, get_user_token)
+        get_res = get_user(user["email"], get_user_token)
 
+        logging.info(f"get_res: {get_res.text}")
         if get_res.status_code == 404 or get_res == None:
             
             logging.warning("User doesn't exist. Creating User.")
@@ -58,6 +59,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
                     user["id"] = id
 
+                    logging.info(id)
+
                     user["account_type"] = account_type
                     
                     user["registry_date"] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
@@ -65,7 +68,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     users_processed.append(user)
 
                     update_okta_table(user.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
-                
+                    return func.HttpResponse("New users created in Okta.")
+            else:
+                logging.info(create_res)
         elif get_res.status_code == 200:
                 logging.warning(f"User already exists. Updating fields.")
                 
@@ -93,8 +98,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                             users_processed.append(user)
 
                             update_okta_table(user.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
-
-    if users_processed:
-        azs.upload_blob_df(pd.DataFrame(data=users_processed), f"okta/okta_data_{start_date}_{end_date}.csv")
-
-    return func.HttpResponse("New users created in Okta.")
+                return func.HttpResponse("Users updated in Okta.")
+   
+    

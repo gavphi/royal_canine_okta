@@ -246,7 +246,7 @@ def parse_from_sql(query):
     """
 
     """
-
+    
     engine = connect_to_db()
 
     with engine.begin() as conn:

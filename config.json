@@ -155,7 +155,7 @@
         "withdrawl": false
     },
 
-    "unsubcribed": {
+    "unsubscribed": {
         "clave": "50B545F2-1279-4E95-A1DA-F94700D80B64",
         "date_column": "dateunsubscribed",
         "email": "emailaddress",
