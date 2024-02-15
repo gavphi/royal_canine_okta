@@ -37,15 +37,17 @@ class DataVerificationClass():
         engine = connect_to_db()
         with engine.begin() as conn:
 
-            query = f"SELECT COUNT(*) FROM UsersSFMC where registry_date > '{self.start_date} 00:00:00.000' and registry_date < '{self.end_date} 00:00:00.000'"
+            query = f"SELECT COUNT(*) FROM UsersSFMC where registry_date > '{self.start_date} 00:00:00.000' and registry_date < '{self.end_date} 00:00:00.000' and data_extension = '{self.page}'"
 
+            
             result = conn.execute(query)
 
             self.sfmc_db_count = result.scalar()
 
         if endpoint_count == self.sfmc_db_count:
             print("SFMC endpoint and the DB have the same count.")
-            print(self.sfmc_db_count)
+            print(f"Count SFMC: {endpoint_count}")
+            print(f"Count DB: {self.sfmc_db_count}")
         else:
             print("Different count detected!")
             print(f"Count SFMC: {endpoint_count}")
@@ -59,14 +61,20 @@ class DataVerificationClass():
         get_user_token = get_token(['users.profile:read'])
 
         self.okta_users = []
+        res = None
         for index, row in df.iterrows():
-            print(row['email'])
-            self.okta_users.append(get_user(row['email'], get_user_token))
+            res = get_user(row['email'], get_user_token)
+            id = json.loads(res.text).get("id")
+            if id:
+                self.okta_users.append(id)
 
         if len(self.okta_users) == self.sfmc_db_count:
             print("Okta and the SFMc have the same count.")
             print(f"Count Okta: {len(self.okta_users)}")
             print(f"Count SFMC DB: {self.sfmc_db_count}")
+            
+            if res:
+                print(f"Okta Response: {res.text}")
         else:
             print("Different count detected!")
             print(f"Count Okta: {len(self.okta_users)}")
@@ -84,11 +92,12 @@ class DataVerificationClass():
             rc_tyc_consent = row['rc_tyc_consent']
             consents.append([mars_pet_car_consent, rc_mkt_consent, data_research_consent, rc_tyc_consent])
 
+        print(f"Stored consents: {consents}")
         total_consents  = []
 
-        for user in self.okta_users:
-            id = json.loads(user.text)["id"]
-            consent = get_consent(id, self.get_consent_token)
+        for user_id in self.okta_users:
+
+            consent = get_consent(user_id, self.get_consent_token)
             
             consent = json.loads(consent.text)['content']
 
@@ -123,12 +132,12 @@ class DataVerificationClass():
         print(f"Consent after Withdrawl: {consent.text}")
 
 
-dv = DataVerificationClass("2023-09-23", "2023-09-25", "start_of_life_dogs")
+dv = DataVerificationClass("2023-03-29", "2023-03-31", "start_of_life_kittens")
 
-"""dv.TestExtractSalesForceDE()
+#dv.TestExtractSalesForceDE()
 
-dv.TestCreateOktaUser()
+#dv.TestCreateOktaUser()
 
-dv.TestCreateOktaConsent()"""
+#dv.TestCreateOktaConsent()
 
-dv.TestWithdrawl("00u1yxxm13ddAsCRC0h8")
+dv.TestWithdrawl("00u1yy5owe6avPuOm0h8")

@@ -18,9 +18,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
     
     #try:
-    #page = req.get_body().decode('utf-8')
+    #input_config = req.get_body().decode('utf-8')
     
-    page = "unsubscribed"
+    page = "registro_news_ultrapersonalizacion"
+    historical_migration = False
     logging.info(f'Extract user data from Salesforce for {page}')
 
     logging.info(f"Extracting for page... {page}")
@@ -34,7 +35,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logger = logging.getLogger()
     logger.addHandler(handler)
 
-
     sfmc_token = get_token()
 
     clave = config_json[page]["clave"]
@@ -43,28 +43,33 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     withdrawl = config_json[page]["withdrawl"]
     
-    start_date = "2023-09-23" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2023-04-15" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2023-09-25" #day_after.strftime('%Y-%m-%d')
+    end_date = "2023-04-16" #day_after.strftime('%Y-%m-%d')
+    
     
     '''
     Get raw data from SFMC using SFMC API endpoint.
     '''
-    try:
-        logging.info(f"Getting data for page... {page}")
+    #try:
+        
+    if historical_migration:
+        data = get_all_data(sfmc_token, clave)
+    else:
+        logging.info(f"Getting data for {page} between dates.")
         data = get_data(sfmc_token, start_date, end_date, clave, date_column)
-    except:
+    
+    """except:
         logging.warning(f"No Data to be extract for {page} today or something went wrong.")
         save_logs(log_stream.getvalue(), LOG_PATH)
-        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong")
+        return func.HttpResponse(f"No Data to be extract for {page} today or something went wrong")"""
 
+    print(f"Data: {data}")
     '''
     Process data of all LP except withdrawl LP to DataFrame and save in Azure Storage
     '''
-
-
     if data != [] and withdrawl == 0:
         logging.info(f"Transforming data for page... {page}")
         users = transform_data(data, page, withdrawl)
@@ -74,13 +79,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         users_df = prepare_df(users, page)
 
+        users_df.to_csv(f"{page}.csv")
         logging.info(f"Uploading to DB... {page}")
-        update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
+        #update_sfmc_table(users_df[["name","surname","email","mobilephone","lng","countryCode", "registry_date", "data_extension", "last_update"]], "UsersSFMC", UsersSFMC_TblSchema())
         
-        update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl", "registry_date"]], "OneTrustConsent", OneTrustConsents_TblSchema())
+        #update_consents_table(users_df[["email", "mars_petcare_consent","rc_mkt_consent","data_research_consent","rc_tyc_consent", "last_update", "withdrawl", "registry_date"]], "OneTrustConsent", OneTrustConsents_TblSchema())
 
-        azs = AzureStorage(config.azure_config.container_name)
-        azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/sfmc_data_{start_date}_{end_date}.csv")
+        #azs = AzureStorage(config.azure_config.container_name)
+        #azs.upload_blob_df(pd.DataFrame(data=users), f"{page}/sfmc_data_{start_date}_{end_date}.csv")
 
         return func.HttpResponse("Data Extracted from SFMC")
 

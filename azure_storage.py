@@ -84,10 +84,10 @@ class AzureStorage:
         )
         downloaded_blob = blob_client.download_blob()
         df = pd.read_csv(io.StringIO(downloaded_blob.content_as_text()))
-        logging.info(
+        """logging.info(
             "Successfully downloaded blob",
             extra={"path": path, "dataframe.info": df.info()},
-        )
+        )"""
         return df
 
     def download_blob_dfs_date(self, container_name, date):

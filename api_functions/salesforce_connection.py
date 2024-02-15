@@ -6,7 +6,8 @@ from core import config
 from api_functions.utils import load_json
 import logging
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import *
 
 subdomain = config.sfmc_config.subdomain
 landing_page_json = load_json("config.json")
@@ -39,6 +40,46 @@ def get_token():
         logging.error(f"Token not generated: {e}")
     return token
 
+def get_month_intervals(start_date_str, end_date_str):
+
+    print(start_date_str, end_date_str)
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+
+    monthly_intervals = []
+    
+    current_date = start_date
+    while current_date <= end_date:
+        monthly_intervals.append(str(current_date.strftime('%Y-%m-%d')))
+        current_date += relativedelta(months=+1)
+        print(current_date)
+
+    return monthly_intervals
+
+def get_all_data(token, landind):
+    
+    page=1
+    all_data = []
+    items = 1
+    while items != []:
+        url = f"https://{subdomain}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/{landind}/rowset?$page={page}"
+        
+        headers = {'Authorization': f'Bearer {token}'
+        }
+
+        logging.info(f"URL: {url}")
+            
+        csv_response = requests.get(url, headers=headers)
+        
+        items = csv_response.json().get("items", [])
+
+        page+=1
+
+        if items != []:
+            all_data.append(items)
+
+    return [item for sublist in all_data for item in sublist]
+
 
 def get_data(token, initial_date, end_date, landind, date_column):
 
@@ -56,10 +97,10 @@ def get_data(token, initial_date, end_date, landind, date_column):
     
     logging.info(csv_response.status_code)
     
-    try:
-        return csv_response.json()["items"]
-    except:
-        return []
+    #try:
+    return csv_response.json()["items"]
+    """except:
+        return []"""
 
 def parse_dictionary(user_value, lp_name, field):
     field_name = landing_page_json[lp_name][field]
@@ -111,7 +152,6 @@ def transform_data(data, lp_name, wd):
             "withdrawl": wd
         }
         
-        logging.info(f"user_data: {user_data}")
         users.append(user_data)
 
     return users
@@ -144,7 +184,7 @@ def prepare_df(users, page):
     users_df["withdrawl"] = users_df['withdrawl'].map(bool_map).fillna(users_df['withdrawl'])
     users_df["data_extension"] = page
 
-    users_df = users_df.drop_duplicates(subset=['email'])
+    #users_df = users_df.drop_duplicates(subset=['email'])
 
     return users_df
 def transform_withdrawl_data(data, lp_name="unsubscribed"):

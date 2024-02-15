@@ -24,11 +24,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     - include try except
     """
 
-    start_date = "2023-09-23" #datetime.today().strftime('%Y-%m-%d')
+    start_date = "2023-03-29" #datetime.today().strftime('%Y-%m-%d')
 
     today = datetime.today()
     day_after = today + timedelta(days=1)
-    end_date = "2023-09-25" #day_after.strftime('%Y-%m-%d')
+    end_date = "2023-03-31" #day_after.strftime('%Y-%m-%d')
 
     query = f"""SELECT us.email, otc.mars_petcare_consent, otc.rc_mkt_consent, otc.data_research_consent, otc.rc_tyc_consent from UsersSFMC us JOIN OneTrustConsent otc ON us.email = otc.email where us.registry_date > '{start_date} 00:00:00.000' and us.registry_date < '{end_date} 00:00:00.000' and otc.withdrawl = 0"""
     logging.info(query)
@@ -69,4 +69,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             logging.warning("Consents not created.")"""
 
 
-    return func.HttpResponse("New user created in Okta")
+    return func.HttpResponse("Consent Created in OneTrust")

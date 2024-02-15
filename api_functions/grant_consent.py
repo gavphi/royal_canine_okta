@@ -7,7 +7,7 @@ ciam_api_url_dev = config.okta_config.ciam_api_url
 okta_url = config.okta_config.okta_domain
 
 
-def granting_consent(id, purposes):
+def granting_consent(id, purposes, token):
     url = f"{ciam_api_url_dev}/consent/users/{id}"
 
     print(url)
@@ -26,7 +26,7 @@ def granting_consent(id, purposes):
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {get_token(['users.consent:collect'])}",
+        "Authorization": f"Bearer {token}",
     }
 
     res = requests.post(url, data=json.dumps(payload), headers=headers)
