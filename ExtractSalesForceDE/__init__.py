@@ -16,19 +16,30 @@ split_name_pages = ["start_of_life_kittens", "start_of_life_dogs", "lifestage_do
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
+    # Setup logging
+    LOG_PATH = f"{page}/logs/logs_{current_time}.log"
+
+    logger, log_stream = setup_logger()
     
     # Get input variables
-    input_config = req.get_json() #get_body().decode('utf-8')
 
-    page = input_config["page"]
-    historical_migration = input_config["historical_migration"]
-    start_date = input_config["start_date"]
-    end_date = input_config["end_date"]
+    try:
+        input_config = req.get_json() #get_body().decode('utf-8')
+        print("input_config", input_config)
+        page = input_config["page"]
+        print("page", page)
+        
+        historical_migration = bool(input_config["historical_migration"])
+        print("historical_migration", historical_migration)
+        start_date = input_config["start_date"]
+        end_date = input_config["end_date"]
 
-    # Get Data Extension configurations
-    clave = config_json[page]["clave"]
-    date_column = config_json[page]["date_column"]
-    withdrawl = config_json[page]["withdrawl"]
+        # Get Data Extension configurations
+        clave = config_json[page]["clave"]
+        date_column = config_json[page]["date_column"]
+        withdrawl = config_json[page]["withdrawl"]
+    except:
+        save_logs(log_stream.getvalue(), LOG_PATH)
 
     # Get interval of dates 
     current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
@@ -41,9 +52,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if not end_date:
         end_date = day_after.strftime('%Y-%m-%d')
         
-    # Setup logging
-    LOG_PATH = f"{page}/logs/logs_{current_time}.log"
-    logger, log_stream = setup_logger()
+    
 
     logging.info(f'Extract user data from Salesforce for {page}')
 
