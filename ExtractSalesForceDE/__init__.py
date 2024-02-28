@@ -18,7 +18,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
     
     # Get input variables
-    input_config = req.get_body().decode('utf-8')
+    input_config = req.get_json() #get_body().decode('utf-8')
+
     page = input_config["page"]
     historical_migration = input_config["historical_migration"]
     start_date = input_config["start_date"]
