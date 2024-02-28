@@ -3,6 +3,8 @@ from azure_storage import AzureStorage
 from datetime import datetime
 from dateutil import parser
 import pytz
+import logging
+import io
 
 def load_json(filename):
     f = open(filename)
@@ -24,3 +26,12 @@ def convert_dates(date_str):
     formatted_date = date_obj_barcelona.strftime('%Y-%m-%d %H:%M:%S')
 
     return formatted_date
+
+
+def setup_logger():
+    log_stream = io.StringIO()
+    handler = logging.StreamHandler(log_stream)
+    logger = logging.getLogger()
+    logger.addHandler(handler)
+
+    return logger, log_stream

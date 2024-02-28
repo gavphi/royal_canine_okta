@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from api_functions.db_functions import parse_from_sql, update_okta_table
 from api_functions.db_schemas import UsersOKTA_TblSchema
 from api_functions.utils import convert_dates
+import time
 
 account_type = 'test'
 
@@ -44,6 +45,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     get_user_token = get_token(['users.profile:read'])
     create_user_token = get_token(['user.custom:register'])
     update_user_token = get_token(['users.profile:write'])
+
+    idx = 6
     for index, user_data in users_df.iterrows():
 
         get_res = get_user(user_data["email"], get_user_token)
@@ -101,6 +104,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                             users_processed.append(user_data)
 
                             #update_okta_table(user_data.to_frame().T[['id', 'email', 'account_type', 'registry_date']], "UsersOkta", UsersOKTA_TblSchema())
+        
+        if idx > 5:
+            time.sleep(60)
     return func.HttpResponse("Users updated in Okta.")
    
     
