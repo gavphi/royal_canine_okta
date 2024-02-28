@@ -23,26 +23,23 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     # Get input variables
 
-    try:    
-        input_config = req.get_json() #get_body().decode('utf-8')
-        logging.info(f"input_config {logging.info}")
+    input_config = req.get_json() #get_body().decode('utf-8')
+    logging.info(f"input_config {logging.info}")
 
-        page = input_config["page"]
-        logging.info(f"page {page}")
-        
-        historical_migration = bool(input_config["historical_migration"])
-        logging.info(f"historical_migration: {historical_migration}")
-        start_date = input_config["start_date"]
-        end_date = input_config["end_date"]
-
-        # Get Data Extension configurations
-        clave = config_json[page]["clave"]
-        date_column = config_json[page]["date_column"]
-        withdrawl = config_json[page]["withdrawl"]
+    page = input_config["page"]
+    logging.info(f"page {page}")
     
-    except:
-        save_logs(log_stream.getvalue(), LOG_PATH)
+    historical_migration = bool(input_config["historical_migration"])
+    logging.info(f"historical_migration: {historical_migration}")
+    start_date = input_config["start_date"]
+    end_date = input_config["end_date"]
 
+    # Get Data Extension configurations
+    clave = config_json[page]["clave"]
+    date_column = config_json[page]["date_column"]
+    withdrawl = config_json[page]["withdrawl"]
+    
+  
 
     # Get interval of dates 
     current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
