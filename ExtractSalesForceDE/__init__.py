@@ -89,7 +89,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     
     # Process data of withdrawl LP to DataFrame and save in Azure Storage
-    
     if withdrawl and data != []:
         users = transform_withdrawl_data(data)
 
