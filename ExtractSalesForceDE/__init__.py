@@ -17,20 +17,21 @@ split_name_pages = ["start_of_life_kittens", "start_of_life_dogs", "lifestage_do
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Extract user data from Salesforce')
     # Setup logging
-    LOG_PATH = f"{page}/logs/logs_{current_time}.log"
+    LOG_PATH = f"logs/sfmc_logs.log"
 
     logger, log_stream = setup_logger()
     
     # Get input variables
 
-    try:
+    try:    
         input_config = req.get_json() #get_body().decode('utf-8')
-        print("input_config", input_config)
+        logging.info(f"input_config {logging.info}")
+
         page = input_config["page"]
-        print("page", page)
+        logging.info(f"page {page}")
         
         historical_migration = bool(input_config["historical_migration"])
-        print("historical_migration", historical_migration)
+        logging.info(f"historical_migration: {historical_migration}")
         start_date = input_config["start_date"]
         end_date = input_config["end_date"]
 
@@ -38,8 +39,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         clave = config_json[page]["clave"]
         date_column = config_json[page]["date_column"]
         withdrawl = config_json[page]["withdrawl"]
+    
     except:
         save_logs(log_stream.getvalue(), LOG_PATH)
+
 
     # Get interval of dates 
     current_time = datetime.today().strftime('%Y-%m-%d %H:%M')
